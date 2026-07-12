@@ -42,16 +42,7 @@ SKILL = {
 MONSTER = ["slime", "lizard", "goblin"]
 
 # Daftar Item
-ITEM = {
-    "PEDANG": 10,
-    "PANAH": 5,
-    "BELATI": 5,
-    "POTION_HP": 10,
-    "HERBAL": 5,
-    "KOTAK_PENYEMBUH": 10,
-    "RAMUAN": 5,
-    "POTION_MANA": 10
-}
+ITEM = ["pedang", "panah", "belati", "potion_hp", "herbal", "kotak_penyembuh", "ramuan", "potion_mana"]
 
 
 # =========================================
@@ -167,7 +158,7 @@ def tampilkan_status_musuh(copy_player, copy_musuh):
 
 def drop_item(inventori):
   """ DROP ITEM """
-  hadiah = random.choice(list(ITEM.keys()))
+  hadiah = random.choice(ITEM)
   inventori.append(hadiah)
   print(f"Kamu mendapatkan {hadiah}")
 
