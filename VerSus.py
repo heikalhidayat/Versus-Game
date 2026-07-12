@@ -3,18 +3,17 @@ import random
 import time
 import copy
 
+
 # =========================================
 # CONSTANS
 # =========================================
 # Status
 DATA_PLAYER = {
-    "LEVEL": 1,
     "HP": 100,
     "MANA": 100
 }
 
 DATA_MUSUH = {
-    "LEVEL": 1,
     "HP": 50,
     "MANA": 50
 }
@@ -42,15 +41,24 @@ SKILL = {
 # Daftar monster
 MONSTER = ["slime", "lizard", "goblin"]
 
-# Countdown Serangan
-MIN_COUNTDOWN = 1
-MAX_COUNTDOWN = 3
-
-# Data Player
-inventory = {
-    "senjata": [],
-    "ramuan": []
+# Daftar Item
+ITEM = {
+    "PEDANG": 10,
+    "PANAH": 5,
+    "BELATI": 5,
+    "POTION_HP": 10,
+    "HERBAL": 5,
+    "KOTAK_PENYEMBUH": 10,
+    "RAMUAN": 5,
+    "POTION_MANA": 10
 }
+
+
+# =========================================
+# DATA PLAYER
+# =========================================
+inventori = []
+
 
 # =========================================
 # FUNCTION
@@ -118,26 +126,93 @@ def daftar_serangan(pilih_skill):
   elif pilih_skill == "4":
     return "SKILL3"
 
-def logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL):
+def serangan_monster(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh):
+  """ SERANGAN MONSTER """
+  skill_monster = random.choice(list(SKILL.keys()))
+  print(f"\nMonster menyerang menggunakan {skill_monster}\n")
+  time.sleep(1)
+
+  # Jeda serangan
+  for i in range(5):
+    print("*  ", end="")
+    time.sleep(1)
+
+  # Logika serangan
+  if SKILL[skill_monster]["DAMAGE"]:
+    copy_player["HP"] -= SKILL[skill_monster]["DAMAGE"]
+    copy_musuh["MANA"] -= SKILL[skill_monster]["MANA_COST"]
+
+  tampilkan_status_player(copy_player, copy_musuh)
+
+def tampilkan_status_player(copy_player, copy_musuh):
+  """ TAMPILKAN STATUS PLAYER """
+  if copy_player["HP"] <= 0:
+    copy_player["HP"] = 0
+  elif copy_musuh["HP"] <= 0:
+    copy_musuh["HP"] = 0
+  # Menampilkan data user dan monster
+  print(f"\nHp player: {copy_player['HP']}", end="")
+  print(f"\tMana player: {copy_player['MANA']}")
+  time.sleep(1)
+
+def tampilkan_status_musuh(copy_player, copy_musuh):
+  """ TAMPILKAN STATUS MUSUH """
+  if copy_player["HP"] <= 0:
+    copy_player["HP"] = 0
+  elif copy_musuh["HP"] <= 0:
+    copy_musuh["HP"] = 0
+  print(f"\nHp monster: {copy_musuh['HP']}", end="")
+  print(f"\tMana monster: {copy_musuh['MANA']}")
+  time.sleep(1)
+
+def drop_item(inventori):
+  """ DROP ITEM """
+  hadiah = random.choice(list(ITEM.keys()))
+  inventori.append(hadiah)
+  print(f"Kamu mendapatkan {hadiah}")
+
+def logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh, inventori):
   """ LOGIKA SERANGAN """
   while True:
     # Tampilkan menu skill
     menu_skill()
     pilih_skill = input("\nPilih skill: ")
     tombol_skill = skill_pilihan(pilih_skill)
+    print(f"\nKamu menyerang menggunakan {daftar_serangan(pilih_skill)}\n")
 
-    # Copy
-    copy_player = copy.deepcopy(DATA_PLAYER)
-    copy_musuh = copy.deepcopy(DATA_MUSUH)
+    # Jeda serangan
+    for i in range(5):
+       print("*  ", end="")
+       time.sleep(1)
 
     # Serangan player
     if SKILL[daftar_serangan(pilih_skill)]["DAMAGE"]:
        copy_player["MANA"] -= SKILL[daftar_serangan(pilih_skill)]["MANA_COST"]
        copy_musuh["HP"] -= SKILL[daftar_serangan(pilih_skill)]["DAMAGE"]
-       print(f"\nHp player: {copy_player['HP']}", end="")
-       print(f"\tMana player: {copy_player['MANA']}")
-       print(f"\nHp monster: {copy_musuh['HP']}", end="")
-       print(f"\tMana monster: {copy_musuh['MANA']}")
+
+       tampilkan_status_musuh(copy_player, copy_musuh)
+
+    # Hasil pertarungan
+    if copy_musuh["HP"] <= 0:
+      print("\n", " * " * 10)
+      print("Kamu Berhasil Mengalahkan Monster!!")
+      drop_item(inventori)
+      time.sleep(1)
+
+      # kembali ke menu utama
+      input("\nTekan enter untuk melanjutkan")
+      break
+    elif copy_player["HP"] <= 0:
+      print("\n", " * " * 10)
+      print("\nKamu kalah!!")
+      time.sleep(1)
+
+      # kembali ke menu utama
+      input("\nTekan enter untuk melanjutkan")
+      break
+
+    # Serangan monster
+    serangan_monster(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh)
 
 def main():
   """ FUNGSI UTAMA - LOOP """
@@ -162,10 +237,12 @@ def main():
       cari_musuh()
 
       # Proses war
-      logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL)
+      copy_player = copy.deepcopy(DATA_PLAYER)
+      copy_musuh = copy.deepcopy(DATA_MUSUH)
+      logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh, inventori)
 
 # =========================================
 # MAIN PROGRAM
 # =========================================
 if __name__ == "__main__":
-  main()
+  main()
