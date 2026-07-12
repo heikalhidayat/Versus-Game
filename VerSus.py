@@ -232,6 +232,11 @@ def main():
       copy_musuh = copy.deepcopy(DATA_MUSUH)
       logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh, inventori)
 
+    # Tampilkan inventori
+    elif menu == 2:
+      print("\n===== INVENTORI DAN SKILL =====")
+      print("Inventori: ", inventori)
+
 # =========================================
 # MAIN PROGRAM
 # =========================================
