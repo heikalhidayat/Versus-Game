@@ -44,6 +44,43 @@ MONSTER = ["slime", "lizard", "goblin"]
 # Daftar Item
 ITEM = ["pedang", "panah", "belati", "potion_hp", "herbal", "kotak_penyembuh", "ramuan", "potion_mana"]
 
+# Ability item
+UP_DAMAGE = {
+    "pedang": {
+        "DAMAGE": 15,
+        "MANA_COST": 10
+    },
+    "panah": {
+        "DAMAGE": 10,
+        "MANA_COST": 5
+    },
+    "belati": {
+        "DAMAGE": 5,
+        "MANA_COST": 0
+    }
+}
+
+UP_HP = {
+    "potion_hp": {
+        "HP": 20
+    },
+    "herbal": {
+        "HP": 10
+    },
+    "kotak_penyembuh": {
+        "HP": 50
+    }
+}
+
+UP_MANA = {
+    "ramuan": {
+        "MANA": 20
+    },
+    "potion_mana": {
+        "MANA": 20
+    }
+}
+
 
 # =========================================
 # DATA PLAYER
@@ -58,7 +95,7 @@ inventori = []
 def menu_utama():
   print("\n======= MENU UTAMA =======")
   print("1. Cari musuh")
-  print("2. Inventori & Up skill")
+  print("2. Inventori & Up Stats")
   print("3. Kembali")
 
 def validasi_menu(pilihan):
@@ -162,6 +199,53 @@ def drop_item(inventori):
   inventori.append(hadiah)
   print(f"Kamu mendapatkan {hadiah}")
 
+def tampilkan_peningkatan_stats():
+  """ TAMPILKAN PENINGKATAN STATS """
+  print("\n==== PENINGKATAN STATS ====")
+  print("1. Up Damage")
+  print("2. Up HP")
+  print("3. Up Mana")
+  print("4. Kembali")
+
+def validasi_up_skill(up):
+  try:
+    menu_int = int(up)
+    if menu_int in [1, 2, 3, 4]:
+      return menu_int
+    else:
+      print("Pilihan harus 1, 2, 3, atau 4")
+      return None
+  except ValueError:
+    print("Pilihan harus berupa angka")
+    return None
+
+
+def cari_item_tersedia_up_hp(inventori):
+  inventori_set = set(inventori)
+  cari_item = set(["potion_hp", "herbal", "kotak_penyembuh"])
+  print(f"\nItem yang tersedia {cari_item}")
+
+  # mencari item yang cocok
+  item_tersedia = inventori_set.intersection(cari_item)
+  print(f"\nItem yang tersedia {item_tersedia}")
+
+def cari_item_tersedia_up_mana(inventori):
+  inventori_set = set(inventori)
+  cari_item = set(["ramuan", "potion_mana"])
+
+  # mencari item yang cocok
+  item_tersedia = inventori_set.intersection(cari_item)
+  print(f"\nItem yang tersedia {item_tersedia}")
+
+
+def cari_item_tersedia_up_damage(inventori):
+  inventori_set = set(inventori)
+  cari_item = set(["pedang", "panah", "belati"])
+    
+  # mencari item yang cocok
+  item_tersedia = inventori_set.intersection(cari_item)
+  print(f"Item yang tersedia {item_tersedia}")
+
 def logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh, inventori):
   """ LOGIKA SERANGAN """
   while True:
@@ -234,8 +318,21 @@ def main():
 
     # Tampilkan inventori
     elif menu == 2:
-      print("\n===== INVENTORI DAN SKILL =====")
+      print("\n======== INVENTORI ========")
       print("Inventori: ", inventori)
+      print("=" * 27)
+      tampilkan_peningkatan_stats()
+
+      # Input dan validasi menu
+      while True:
+        up = input("\nPilih Stats: ")
+        validasi = validasi_up_skill(up)
+        if validasi is not None:
+          break
+
+      # Logika up skill
+      if validasi == 1:
+        cari_item_tersedia_up_damage(inventori)
 
 # =========================================
 # MAIN PROGRAM
