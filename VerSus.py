@@ -223,11 +223,11 @@ def validasi_up_skill(up):
 def cari_item_tersedia_up_hp(inventori):
   inventori_set = set(inventori)
   cari_item = set(["potion_hp", "herbal", "kotak_penyembuh"])
-  print(f"\nItem yang tersedia {cari_item}")
 
   # mencari item yang cocok
   item_tersedia = inventori_set.intersection(cari_item)
   print(f"\nItem yang tersedia {item_tersedia}")
+  return item_tersedia
 
 def cari_item_tersedia_up_mana(inventori):
   inventori_set = set(inventori)
@@ -236,15 +236,35 @@ def cari_item_tersedia_up_mana(inventori):
   # mencari item yang cocok
   item_tersedia = inventori_set.intersection(cari_item)
   print(f"\nItem yang tersedia {item_tersedia}")
+  return item_tersedia
 
 
 def cari_item_tersedia_up_damage(inventori):
   inventori_set = set(inventori)
   cari_item = set(["pedang", "panah", "belati"])
-    
+
   # mencari item yang cocok
   item_tersedia = inventori_set.intersection(cari_item)
   print(f"Item yang tersedia {item_tersedia}")
+  return item_tersedia
+
+def ambil_item(pilih_up_skill):
+  try:
+    skill_int = int(pilih_up_skill)
+    if skill_int in [0, 1, 2]:
+      return skill_int
+    else:
+      print("Pilihan tidak tersedia!! Pilih 1, 2, atau 3")
+      return None
+  except ValueError:
+    print("Pilihan tidak valid!! Pilih berupa angka")
+    return None
+
+def up_stats_hp(pilih_up_skill):
+  """ UP STATS """
+  if pilih_up_skill == 0:
+    DATA_PLAYER["HP"] += 
+
 
 def logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh, inventori):
   """ LOGIKA SERANGAN """
@@ -333,6 +353,38 @@ def main():
       # Logika up skill
       if validasi == 1:
         cari_item_tersedia_up_damage(inventori)
+        print("=" * 20)
+
+        # pilih index skill
+        skill_int = input("\nPilih urutan berdasarkan index: ")
+        skill_up = int(skill_int) - 1
+        validasi_ambil_skill = ambil_item(skill_up)
+        if validasi_ambil_skill is not None:
+          break
+
+      elif validasi == 2:
+        cari_item_tersedia_up_hp(inventori)
+        print("=" * 20)
+
+        # pilih index skill
+        skill_int = input("\nPilih urutan berdasarkan index: ")
+        skill_up = int(skill_int) - 1
+        validasi_ambil_skill = ambil_item(skill_up)
+        if validasi_ambil_skill is not None:
+          break
+
+
+      elif validasi == 3:
+        cari_item_tersedia_up_mana(inventori)
+        print("=" * 20)
+
+        # pilih index skill
+        skill_int = input("\nPilih urutan berdasarkan index: ")
+        skill_up = int(skill_int) - 1
+        validasi_ambil_skill = ambil_item(skill_up)
+        if validasi_ambil_skill is not None:
+          break
+
 
 # =========================================
 # MAIN PROGRAM
