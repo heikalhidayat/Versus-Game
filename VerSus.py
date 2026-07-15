@@ -263,7 +263,7 @@ def apply_up_damage(item_name):
     if item_name in UP_DAMAGE:
         DATA_PLAYER.setdefault("_weapon_bonus", 0)
         bonus = UP_DAMAGE[item_name]["DAMAGE"]
-        # sebagai contoh, kita tambahkan bonus ke BASIC_ATTACK DAMAGE
+        # tambahkan bonus ke BASIC_ATTACK DAMAGE
         SKILL["BASIC_ATTACK"]["DAMAGE"] += bonus
         print(f"Damage BASIC_ATTACK bertambah +{bonus}")
         pause(0.2)
@@ -399,12 +399,12 @@ def main():
         elif menu == 2:
             while True:
                 print("\n======== INVENTORI ========")
-                # tampilkan inventori dengan hitungan
+                # Tampilkan inventori dengan hitungan
                 if inventori:
                     counts = {}
-                    for it in inventori:
-                        counts[it] = counts.get(it, 0) + 1
-                    print("Inventori:")
+                    for item in inventori:
+                        counts[item] = counts.get(item, 0) + 1
+                    print("Inventori: ")
                     for name, cnt in counts.items():
                         print(f"- {name} (x{cnt})")
                 else:
@@ -412,9 +412,9 @@ def main():
                 print("=" * 27)
                 tampilkan_peningkatan_stats()
 
-                # Input dan validasi menu
+                # Input validasi menu
                 while True:
-                    up = input("\nPilih Stats: ")
+                    up = input("\nPilih menu: ")
                     validasi = validasi_up_skill(up)
                     if validasi is not None:
                         break
@@ -433,12 +433,12 @@ def main():
                     break
 
                 # setelah satu aksi upgrade, tanyakan apakah ingin kembali atau lanjut
-                lanjut = input("\nKembali ke menu inventori? (y untuk kembali ke menu utama, tekan enter untuk tetap di inventori): ").strip().lower()
+                lanjut = input("\nKembali ke menu utama? (y/n): ").strip().lower()
                 if lanjut == "y":
                     break
 
         elif menu == 3:
-            print("Terima kasih telah bermain. Sampai jumpa!")
+            print("\nTerima kasih telah bermain! Sampai jumpa lagi")
             break
 
 # =========================================
