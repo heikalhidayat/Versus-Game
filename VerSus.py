@@ -3,11 +3,9 @@ import random
 import time
 import copy
 
-
 # =========================================
-# CONSTANS
+# CONSTANTS / GLOBALS
 # =========================================
-# Status
 DATA_PLAYER = {
     "HP": 100,
     "MANA": 100
@@ -81,320 +79,370 @@ UP_MANA = {
     }
 }
 
-
 # =========================================
 # DATA PLAYER
 # =========================================
 inventori = []
 
+# Helper kecil
+def pause(seconds=0.5):
+    """Jeda kecil untuk memberi efek 'dramatis' tanpa terlalu lama."""
+    time.sleep(seconds)
 
 # =========================================
 # FUNCTION
 # =========================================
 
 def menu_utama():
-  print("\n======= MENU UTAMA =======")
-  print("1. Cari musuh")
-  print("2. Inventori & Up Stats")
-  print("3. Kembali")
+    print("\n======= MENU UTAMA =======")
+    print("1. Cari musuh")
+    print("2. Inventori & Up Stats")
+    print("3. Keluar")
 
 def validasi_menu(pilihan):
-  try:
-    menu_int = int(pilihan)
-    if menu_int in [1, 2, 3]:
-      return menu_int
-    else:
-      print("Pilihan harus 1, 2,atau 3")
-      return None
-  except ValueError:
-    print("Pilihan harus berupa angka")
-    return None
+    try:
+        menu_int = int(pilihan)
+        if menu_int in [1, 2, 3]:
+            return menu_int
+        else:
+            print("Pilihan harus 1, 2, atau 3")
+            return None
+    except ValueError:
+        print("Pilihan harus berupa angka")
+        return None
 
 def cari_musuh():
-  """ MENCARI MUSUH """
-  monster = random.choice(MONSTER)
-  print("\nMencari musuh", end="")
-  for i in range(5):
-    print(".", end="")
-    time.sleep(1)
-  print()
-  print(f"\nKamu menemukan monster {monster}")
-  print(f"Hp monster: {DATA_MUSUH['HP']}", end="")
-  print(f"\tMana monster: {DATA_MUSUH['MANA']}")
-  time.sleep(1)
-  return monster
+    """Mencari monster secara acak dan menampilkan stat dasar."""
+    monster = random.choice(MONSTER)
+    print("\nMencari musuh", end="")
+    for _ in range(3):
+        print(".", end="", flush=True)
+        pause(0.3)
+    print()
+    print(f"\nKamu menemukan monster {monster}")
+    print(f"Hp monster: {DATA_MUSUH['HP']}\tMana monster: {DATA_MUSUH['MANA']}")
+    pause(0.5)
+    return monster
 
 def menu_skill():
-  """ MENU SKILL """
-  print("\n===== Serang Monster =====")
-  print("1. Basic Attack")
-  print("2. Skill1")
-  print("3. Skill2")
-  print("4. Skill3")
+    """MENU SKILL"""
+    print("\n===== Serang Monster =====")
+    print("1. Basic Attack")
+    print("2. Skill1")
+    print("3. Skill2")
+    print("4. Skill3")
 
 def skill_pilihan(pilih_skill):
-  try:
-    skill_int = int(pilih_skill)
-    if skill_int in [1, 2, 3, 4]:
-      return skill_int
-    else:
-      print("Pilihan tidak tersedia!! Pilih 1, 2, 3, atau 4")
-      return None
-  except ValueError:
-    print("Pilihan tidak valid!! Pilih berupa angka")
-    return None
+    try:
+        skill_int = int(pilih_skill)
+        if skill_int in [1, 2, 3, 4]:
+            return skill_int
+        else:
+            print("Pilihan tidak tersedia!! Pilih 1, 2, 3, atau 4")
+            return None
+    except ValueError:
+        print("Pilihan tidak valid!! Pilih berupa angka")
+        return None
 
-def daftar_serangan(pilih_skill):
-  if pilih_skill == "1":
-    return "BASIC_ATTACK"
-  elif pilih_skill == "2":
-    return "SKILL1"
-  elif pilih_skill == "3":
-    return "SKILL2"
-  elif pilih_skill == "4":
-    return "SKILL3"
+def daftar_serangan_from_int(idx):
+    mapping = {1: "BASIC_ATTACK", 2: "SKILL1", 3: "SKILL2", 4: "SKILL3"}
+    return mapping.get(idx, None)
 
-def serangan_monster(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh):
-  """ SERANGAN MONSTER """
-  skill_monster = random.choice(list(SKILL.keys()))
-  print(f"\nMonster menyerang menggunakan {skill_monster}\n")
-  time.sleep(1)
+def serangan_monster(copy_player, copy_musuh):
+    """SERANGAN MONSTER: pilih skill acak, cek mana, lakukan serangan."""
+    skill_monster = random.choice(list(SKILL.keys()))
+    # Jika monster tidak cukup mana untuk skill, pakai BASIC_ATTACK
+    mana_cost = SKILL[skill_monster]["MANA_COST"]
+    if copy_musuh["MANA"] < mana_cost:
+        skill_monster = "BASIC_ATTACK"
+        mana_cost = SKILL[skill_monster]["MANA_COST"]
 
-  # Jeda serangan
-  for i in range(5):
-    print("*  ", end="")
-    time.sleep(1)
+    print(f"\nMonster menyerang menggunakan {skill_monster}\n")
+    pause(0.5)
 
-  # Logika serangan
-  if SKILL[skill_monster]["DAMAGE"]:
-    copy_player["HP"] -= SKILL[skill_monster]["DAMAGE"]
-    copy_musuh["MANA"] -= SKILL[skill_monster]["MANA_COST"]
+    # Jeda serangan singkat
+    for _ in range(3):
+        print("*  ", end="", flush=True)
+        pause(0.2)
 
-  tampilkan_status_player(copy_player, copy_musuh)
+    # Logika serangan
+    dmg = SKILL[skill_monster]["DAMAGE"]
+    copy_player["HP"] -= dmg
+    copy_musuh["MANA"] -= mana_cost
+    if copy_musuh["MANA"] < 0:
+        copy_musuh["MANA"] = 0
+
+    tampilkan_status_player(copy_player, copy_musuh)
 
 def tampilkan_status_player(copy_player, copy_musuh):
-  """ TAMPILKAN STATUS PLAYER """
-  if copy_player["HP"] <= 0:
-    copy_player["HP"] = 0
-  elif copy_musuh["HP"] <= 0:
-    copy_musuh["HP"] = 0
-  # Menampilkan data user dan monster
-  print(f"\nHp player: {copy_player['HP']}", end="")
-  print(f"\tMana player: {copy_player['MANA']}")
-  time.sleep(1)
+    """Tampilkan status pemain"""
+    if copy_player["HP"] <= 0:
+        copy_player["HP"] = 0
+    if copy_musuh["HP"] <= 0:
+        copy_musuh["HP"] = 0
+    print(f"\nHp player: {copy_player['HP']}\tMana player: {copy_player['MANA']}")
+    pause(0.2)
 
 def tampilkan_status_musuh(copy_player, copy_musuh):
-  """ TAMPILKAN STATUS MUSUH """
-  if copy_player["HP"] <= 0:
-    copy_player["HP"] = 0
-  elif copy_musuh["HP"] <= 0:
-    copy_musuh["HP"] = 0
-  print(f"\nHp monster: {copy_musuh['HP']}", end="")
-  print(f"\tMana monster: {copy_musuh['MANA']}")
-  time.sleep(1)
+    """Tampilkan status musuh"""
+    if copy_player["HP"] <= 0:
+        copy_player["HP"] = 0
+    if copy_musuh["HP"] <= 0:
+        copy_musuh["HP"] = 0
+    print(f"\nHp monster: {copy_musuh['HP']}\tMana monster: {copy_musuh['MANA']}")
+    pause(0.2)
 
 def drop_item(inventori):
-  """ DROP ITEM """
-  hadiah = random.choice(ITEM)
-  inventori.append(hadiah)
-  print(f"Kamu mendapatkan {hadiah}")
-
-def logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh, inventori):
-  """ LOGIKA SERANGAN """
-  while True:
-    # Tampilkan menu skill
-    menu_skill()
-    pilih_skill = input("\nPilih skill: ")
-    tombol_skill = skill_pilihan(pilih_skill)
-    print(f"\nKamu menyerang menggunakan {daftar_serangan(pilih_skill)}\n")
-
-    # Jeda serangan
-    for i in range(5):
-       print("*  ", end="")
-       time.sleep(1)
-
-    # Serangan player
-    if SKILL[daftar_serangan(pilih_skill)]["DAMAGE"]:
-       copy_player["MANA"] -= SKILL[daftar_serangan(pilih_skill)]["MANA_COST"]
-       copy_musuh["HP"] -= SKILL[daftar_serangan(pilih_skill)]["DAMAGE"]
-
-       tampilkan_status_musuh(copy_player, copy_musuh)
-
-    # Hasil pertarungan
-    if copy_musuh["HP"] <= 0:
-      print("\n", " * " * 10)
-      print("Kamu Berhasil Mengalahkan Monster!!")
-      drop_item(inventori)
-      time.sleep(1)
-
-      # kembali ke menu utama
-      input("\nTekan enter untuk melanjutkan")
-      break
-    elif copy_player["HP"] <= 0:
-      print("\n", " * " * 10)
-      print("\nKamu kalah!!")
-      time.sleep(1)
-
-      # kembali ke menu utama
-      input("\nTekan enter untuk melanjutkan")
-      break
-
-    # Serangan monster
-    serangan_monster(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh)
+    """DROP ITEM: dapatkan item random ke inventori."""
+    hadiah = random.choice(ITEM)
+    inventori.append(hadiah)
+    print(f"Kamu mendapatkan {hadiah}")
 
 def tampilkan_peningkatan_stats():
-  """ TAMPILKAN PENINGKATAN STATS """
-  print("\n==== PENINGKATAN STATS ====")
-  print("1. Up Damage")
-  print("2. Up HP")
-  print("3. Up Mana")
-  print("4. Kembali")
+    print("\n==== PENINGKATAN STATS ====")
+    print("1. Up Damage")
+    print("2. Up HP")
+    print("3. Up Mana")
+    print("4. Kembali")
 
 def validasi_up_skill(up):
-  try:
-    menu_int = int(up)
-    if menu_int in [1, 2, 3, 4]:
-      return menu_int
-    else:
-      print("Pilihan harus 1, 2, 3, atau 4")
-      return None
-  except ValueError:
-    print("Pilihan harus berupa angka")
-    return None
+    try:
+        menu_int = int(up)
+        if menu_int in [1, 2, 3, 4]:
+            return menu_int
+        else:
+            print("Pilihan harus 1, 2, 3, atau 4")
+            return None
+    except ValueError:
+        print("Pilihan harus berupa angka")
+        return None
 
-
+# Cari item tersedia tapi menjaga urutan dan jumlah (count)
 def cari_item_tersedia_up_hp(inventori):
-  inventori_set = set(inventori)
-  cari_item = set(["potion_hp", "herbal", "kotak_penyembuh"])
-
-  # mencari item yang cocok
-  item_tersedia = inventori_set.intersection(cari_item)
-  print(f"\nItem yang tersedia {item_tersedia}")
-  return item_tersedia
+    available = []
+    for name in UP_HP.keys():
+        count = inventori.count(name)
+        if count:
+            available.append((name, count))
+    print(f"\nItem yang tersedia untuk HP: {available}")
+    return available
 
 def cari_item_tersedia_up_mana(inventori):
-  inventori_set = set(inventori)
-  cari_item = set(["ramuan", "potion_mana"])
-
-  # mencari item yang cocok
-  item_tersedia = inventori_set.intersection(cari_item)
-  print(f"\nItem yang tersedia {item_tersedia}")
-  return item_tersedia
-
+    available = []
+    for name in UP_MANA.keys():
+        count = inventori.count(name)
+        if count:
+            available.append((name, count))
+    print(f"\nItem yang tersedia untuk Mana: {available}")
+    return available
 
 def cari_item_tersedia_up_damage(inventori):
-  inventori_set = set(inventori)
-  cari_item = set(["pedang", "panah", "belati"])
+    available = []
+    for name in UP_DAMAGE.keys():
+        count = inventori.count(name)
+        if count:
+            available.append((name, count))
+    print(f"\nItem yang tersedia untuk Damage: {available}")
+    return available
 
-  # mencari item yang cocok
-  item_tersedia = inventori_set.intersection(cari_item)
-  print(f"Item yang tersedia {item_tersedia}")
-  return item_tersedia
+def ambil_item_index(pilih_up_skill, max_index):
+    """ubah input index (1-based) ke 0-based dan validasi."""
+    try:
+        idx = int(pilih_up_skill) - 1
+        if 0 <= idx < max_index:
+            return idx
+        else:
+            print(f"Pilihan tidak tersedia!! Pilih antara 1 dan {max_index}")
+            return None
+    except ValueError:
+        print("Pilihan tidak valid!! Pilih berupa angka")
+        return None
 
-def ambil_item(pilih_up_skill):
-  try:
-    skill_int = int(pilih_up_skill)
-    if skill_int in [0, 1, 2]:
-      return skill_int
-    else:
-      print("Pilihan tidak tersedia!! Pilih 1, 2, atau 3")
-      return None
-  except ValueError:
-    print("Pilihan tidak valid!! Pilih berupa angka")
-    return None
+def apply_up_damage(item_name):
+    """Terapkan efek damage dari item ke BASIC_ATTACK permanen."""
+    if item_name in UP_DAMAGE:
+        DATA_PLAYER.setdefault("_weapon_bonus", 0)
+        bonus = UP_DAMAGE[item_name]["DAMAGE"]
+        # sebagai contoh, kita tambahkan bonus ke BASIC_ATTACK DAMAGE
+        SKILL["BASIC_ATTACK"]["DAMAGE"] += bonus
+        print(f"Damage BASIC_ATTACK bertambah +{bonus}")
+        pause(0.2)
 
-def tombol_up_skill():
-  skill_int = input("\nPilih urutan berdasarkan index: ")
-  skill_up = int(skill_int) - 1
-  validasi_ambil_skill = ambil_item(skill_up)
-  return skill_up
+def apply_up_hp(item_name):
+    if item_name in UP_HP:
+        bonus = UP_HP[item_name]["HP"]
+        DATA_PLAYER["HP"] += bonus
+        print(f"HP Max pemain bertambah +{bonus} (sekarang {DATA_PLAYER['HP']})")
+        pause(0.2)
 
-def up_stats_hp(inventori, item_tersedia, skill_up):
-  """ UP STATS HP """
-  item_terpakai = item_tersedia[skill_up].pop()
-  if item_terpakai in UP_HP:
-    DATA_PLAYER["HP"] += UP_HP[item_terpakai]["HP"]
-    print(f"\nKamu menggunakan {item_terpakai}")
+def apply_up_mana(item_name):
+    if item_name in UP_MANA:
+        bonus = UP_MANA[item_name]["MANA"]
+        DATA_PLAYER["MANA"] += bonus
+        print(f"Mana Max pemain bertambah +{bonus} (sekarang {DATA_PLAYER['MANA']})")
+        pause(0.2)
 
-  input("Tekan ENTER untuk melanjutkan! ")
+def gunakan_item_dari_daftar(available_list, inventori, apply_fn):
+    """
+    available_list: list of (name,count)
+    apply_fn: function(item_name) -> apply effect
+    """
+    if not available_list:
+        print("Tidak ada item yang tersedia pada kategori ini.")
+        return
 
-def up_stats_mana(inventori, item_tersedia, skill_up):
-  """ UP STATS HP """
-  item_terpakai = item_tersedia[skill_up].pop()
-  if item_terpakai in UP_MANA:
-    DATA_PLAYER["MANA"] += UP_HP[item_terpakai]["MANA"]
-    print(f"\nKamu menggunakan {item_terpakai}")
-  
-  input("Tekan ENTER untuk melanjutkan! ")
+    # tampilkan sebagai daftar berindeks
+    print("\nPilih item yang ingin digunakan:")
+    for i, (name, count) in enumerate(available_list, start=1):
+        print(f"{i}. {name} (x{count})")
+
+    while True:
+        pilih = input("\nPilih nomor item (atau 0 untuk batal): ")
+        if pilih.strip() == "0":
+            print("Dibatalkan.")
+            return
+        idx = ambil_item_index(pilih, len(available_list))
+        if idx is not None:
+            item_name = available_list[idx][0]
+            # Terapkan efek
+            apply_fn(item_name)
+            # Hapus satu buah item dari inventori
+            inventori.remove(item_name)
+            print(f"{item_name} telah digunakan dan dihapus dari inventori.")
+            return
+
+def logika_serangan(copy_player, copy_musuh, inventori):
+    """LOGIKA PERTARUNGAN"""
+    while True:
+        menu_skill()
+        pilih_skill = input("\nPilih skill: ")
+        tombol_skill = skill_pilihan(pilih_skill)
+        if tombol_skill is None:
+            continue
+
+        skill_key = daftar_serangan_from_int(tombol_skill)
+        if skill_key is None:
+            print("Skill tidak dikenali.")
+            continue
+
+        mana_cost = SKILL[skill_key]["MANA_COST"]
+        if copy_player["MANA"] < mana_cost:
+            print("Mana tidak cukup untuk menggunakan skill ini. Pilih skill lain.")
+            continue
+
+        print(f"\nKamu menyerang menggunakan {skill_key}\n")
+        # Jeda serangan singkat
+        for _ in range(3):
+            print("*  ", end="", flush=True)
+            pause(0.2)
+
+        # Serangan player
+        dmg = SKILL[skill_key]["DAMAGE"]
+        copy_player["MANA"] -= mana_cost
+        copy_musuh["HP"] -= dmg
+        if copy_player["MANA"] < 0:
+            copy_player["MANA"] = 0
+
+        tampilkan_status_musuh(copy_player, copy_musuh)
+
+        # Cek hasil pertarungan
+        if copy_musuh["HP"] <= 0:
+            print("\n", " * " * 10)
+            print("Kamu Berhasil Mengalahkan Monster!!")
+            drop_item(inventori)
+            pause(0.5)
+            input("\nTekan enter untuk melanjutkan")
+            break
+        if copy_player["HP"] <= 0:
+            print("\n", " * " * 10)
+            print("\nKamu kalah!!")
+            pause(0.5)
+            input("\nTekan enter untuk melanjutkan")
+            break
+
+        # Serangan monster
+        serangan_monster(copy_player, copy_musuh)
+        # Cek apakah player mati setelah serangan monster
+        if copy_player["HP"] <= 0:
+            print("\n", " * " * 10)
+            print("\nKamu kalah!!")
+            pause(0.5)
+            input("\nTekan enter untuk melanjutkan")
+            break
 
 def main():
-  """ FUNGSI UTAMA - LOOP """
-  print("\n" + "=" * 45)
-  print("SELAMAT DATANG DI GAME VERSUS")
-  print("=" * 45)
+    """FUNGSI UTAMA - LOOP"""
+    print("\n" + "=" * 45)
+    print("SELAMAT DATANG DI GAME VERSUS")
+    print("=" * 45)
 
-  while True:
-    # Tampilkan menu utama
-    menu_utama()
-
-    # Input dan validasi menu
     while True:
-      pilihan = input("\nPilih menu: ")
-      menu = validasi_menu(pilihan)
-      if menu is not None:
-        break
+        menu_utama()
 
-    # Logika game
-    if menu == 1:
-      # mencari monster
-      cari_musuh()
+        # Input dan validasi menu
+        while True:
+            pilihan = input("\nPilih menu: ")
+            menu = validasi_menu(pilihan)
+            if menu is not None:
+                break
 
-      # Proses war
-      copy_player = copy.deepcopy(DATA_PLAYER)
-      copy_musuh = copy.deepcopy(DATA_MUSUH)
-      logika_serangan(DATA_PLAYER, DATA_MUSUH, SKILL, copy_player, copy_musuh, inventori)
+        # Logika game
+        if menu == 1:
+            # mencari monster
+            cari_musuh()
 
-    # Tampilkan inventori
-    elif menu == 2:
-      print("\n======== INVENTORI ========")
-      print("Inventori: ", inventori)
-      print("=" * 27)
-      tampilkan_peningkatan_stats()
+            # Proses war dengan salinan stat
+            copy_player = copy.deepcopy(DATA_PLAYER)
+            copy_musuh = copy.deepcopy(DATA_MUSUH)
+            logika_serangan(copy_player, copy_musuh, inventori)
 
-      # Input dan validasi menu
-      while True:
-        up = input("\nPilih Stats: ")
-        validasi = validasi_up_skill(up)
-        if validasi is not None:
-          break
-      
-      item_tersedia = cari_item_tersedia_up_hp(inventori)
-      skill_up = tombol_up_skill()
+        elif menu == 2:
+            while True:
+                print("\n======== INVENTORI ========")
+                # tampilkan inventori dengan hitungan
+                if inventori:
+                    counts = {}
+                    for it in inventori:
+                        counts[it] = counts.get(it, 0) + 1
+                    print("Inventori:")
+                    for name, cnt in counts.items():
+                        print(f"- {name} (x{cnt})")
+                else:
+                    print("Inventori kosong.")
+                print("=" * 27)
+                tampilkan_peningkatan_stats()
 
-      # Logika up skill
-      if validasi == 1:
-        cari_item_tersedia_up_damage(inventori)
-        print("=" * 20)
-        tombol_up_skill()
+                # Input dan validasi menu
+                while True:
+                    up = input("\nPilih Stats: ")
+                    validasi = validasi_up_skill(up)
+                    if validasi is not None:
+                        break
 
-      elif validasi == 2:
-        cari_item_tersedia_up_hp(inventori)
-        print("=" * 20)
-        tombol_up_skill()
-        up_stats_hp(inventori, item_tersedia, skill_up)
+                # Logika up skill
+                if validasi == 1:
+                    available = cari_item_tersedia_up_damage(inventori)
+                    gunakan_item_dari_daftar(available, inventori, apply_up_damage)
+                elif validasi == 2:
+                    available = cari_item_tersedia_up_hp(inventori)
+                    gunakan_item_dari_daftar(available, inventori, apply_up_hp)
+                elif validasi == 3:
+                    available = cari_item_tersedia_up_mana(inventori)
+                    gunakan_item_dari_daftar(available, inventori, apply_up_mana)
+                elif validasi == 4:
+                    break
 
-      elif validasi == 3:
-        cari_item_tersedia_up_mana(inventori)
-        print("=" * 20)
-        tombol_up_skill()
-        up_stats_mana(inventori, item_tersedia, skill_up)
+                # setelah satu aksi upgrade, tanyakan apakah ingin kembali atau lanjut
+                lanjut = input("\nKembali ke menu inventori? (y untuk kembali ke menu utama, tekan enter untuk tetap di inventori): ").strip().lower()
+                if lanjut == "y":
+                    break
 
-    elif menu == 3:
-      print("\nTerima kasih telah bermain!")
-      break
+        elif menu == 3:
+            print("Terima kasih telah bermain. Sampai jumpa!")
+            break
 
 # =========================================
 # MAIN PROGRAM
 # =========================================
 if __name__ == "__main__":
-  main()
+    main()
