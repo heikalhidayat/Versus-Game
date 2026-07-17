@@ -2,6 +2,7 @@
 import random
 import time
 import copy
+import sqlite3
 
 # =========================================
 # CONSTANTS / GLOBALS
