@@ -243,7 +243,7 @@ def drop_item(inventori):
     conn = sqlite3.connect('game.db')
     cursor = conn.cursor()
     
-    cursor.execute("INSERT INTO inventori (nama_item) VALUES (?), (hadiah)")
+    cursor.execute("INSERT INTO inventori (item_name) VALUES (?)", (hadiah))
     conn.commit()
     conn.close()
     
