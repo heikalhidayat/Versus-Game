@@ -238,7 +238,15 @@ def tampilkan_status_musuh(copy_player, copy_musuh):
 def drop_item(inventori):
     """DROP ITEM: dapatkan item random ke inventori."""
     hadiah = random.choice(ITEM)
-    inventori.append(hadiah)
+    
+    # memasukkan hadiah ke database
+    conn = sqlite3.connect('game.db')
+    cursor = conn.cursor()
+    
+    cursor.execute("INSERT INTO inventori (nama_item) VALUES (?), (hadiah)")
+    conn.commit()
+    conn.close()
+    
     print(f"Kamu mendapatkan {hadiah}")
 
 def tampilkan_peningkatan_stats():
