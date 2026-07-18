@@ -5,6 +5,22 @@ import copy
 import sqlite3
 
 # =========================================
+# CREATE DATABASE
+# =========================================
+def init_database():
+    conn = sqlite3.connect('game.db')
+    cursor = conn.cursor()
+
+    # buat file database
+    cursor.execute("CREATE TABLE IF NOT EXISTS memori (id_player INTEGER PRIMARY KEY, user_name VARCHAR(50), hp_player INTEGER, mana_player INTEGER)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS inventori (id_item INTEGER PRIMARY KEY AUTOINCREMENT, id_player INTEGER, item_name VARCHAR(50))")
+
+    conn.commit()
+    conn.close()
+
+init_database()
+
+# =========================================
 # CONSTANTS / GLOBALS
 # =========================================
 DATA_PLAYER = {
@@ -93,6 +109,32 @@ def pause(seconds=0.5):
 # =========================================
 # FUNCTION
 # =========================================
+
+def login_atau_daftar():
+    UserName = input("Masukkan nama karakter: ")
+
+    conn = sqlite3.connect('game.db')
+    cursor = conn.cursor()
+
+    # Cek apakah user sdh terdaftar
+    cursor.execute("SELECT id_player, hp_player, mana_player FROM memori WHERE user_name = ?", (UserName,))
+    data_player = cursor.fetchone()
+
+    if data_player is not None:
+        id_player = data_player[0]
+        hp_player = data_player[1]
+        mana_player = data_player[2]
+        print(f"\n[LOADING] Selamat datang kembali, {UserName} (ID: {id_player})")
+        print(f"Status Anda: (HP: {hp_player}, Mana: {mana_player})")
+        pause(0.5)
+    else:
+        cursor.execute("INSERT INTO memori (user_name, hp_player, mana_player) VALUES (?, ?, ?)", (UserName, DATA_PLAYER["HP"], DATA_PLAYER["MANA"]))
+        conn.commit()
+        id_player = cursor.lastrowid
+        print(f"\n[LOADING] Selamat datang, {UserName} (ID: {id_player}!")
+
+    conn.close()
+    return id_player, UserName
 
 def menu_utama():
     print("\n======= MENU UTAMA =======")
@@ -373,6 +415,7 @@ def logika_serangan(copy_player, copy_musuh, inventori):
 
 def main():
     """FUNGSI UTAMA - LOOP"""
+    id_player, user_name = login_atau_daftar()
     print("\n" + "=" * 45)
     print("SELAMAT DATANG DI GAME VERSUS")
     print("=" * 45)
