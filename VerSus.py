@@ -127,14 +127,23 @@ def login_atau_daftar():
         print(f"\n[LOADING] Selamat datang kembali, {UserName} (ID: {id_player})")
         print(f"Status Anda: (HP: {hp_player}, Mana: {mana_player})")
         pause(0.5)
+
+        # Load inventori dari database
+        cursor.execute("SELECT item_name FROM inventori WHERE id_player = ?", (id_player,))
+        items = cursor.fetchall()
+        inventori_loaded = [item[0] for item in items]
+        print(f"Inventori Anda: {inventori_loaded}")
+
+        pause(0.5)
     else:
         cursor.execute("INSERT INTO memori (user_name, hp_player, mana_player) VALUES (?, ?, ?)", (UserName, DATA_PLAYER["HP"], DATA_PLAYER["MANA"]))
         conn.commit()
         id_player = cursor.lastrowid
-        print(f"\n[LOADING] Selamat datang, {UserName} (ID: {id_player}!")
+        inventori_loaded = []
+        print(f"\n[LOADING] Selamat datang, {UserName} (ID: {id_player})")
 
     conn.close()
-    return id_player, UserName
+    return id_player, UserName, inventori_loaded
 
 def menu_utama():
     print("\n======= MENU UTAMA =======")
@@ -235,7 +244,7 @@ def tampilkan_status_musuh(copy_player, copy_musuh):
     print(f"\nHp monster: {copy_musuh['HP']}\tMana monster: {copy_musuh['MANA']}")
     pause(0.2)
 
-def drop_item(inventori):
+def drop_item(id_player, inventori):
     """DROP ITEM: dapatkan item random ke inventori."""
     hadiah = random.choice(ITEM)
     
@@ -243,7 +252,7 @@ def drop_item(inventori):
     conn = sqlite3.connect('game.db')
     cursor = conn.cursor()
     
-    cursor.execute("INSERT INTO inventori (item_name) VALUES (?)", (hadiah))
+    cursor.execute("INSERT INTO inventori (id_player, item_name) VALUES (?, ?)", (id_player, hadiah))
     conn.commit()
     conn.close()
     
@@ -319,21 +328,37 @@ def apply_up_damage(item_name):
         print(f"Damage BASIC_ATTACK bertambah +{bonus}")
         pause(0.2)
 
-def apply_up_hp(item_name):
+def apply_up_hp(id_player, item_name):
     if item_name in UP_HP:
         bonus = UP_HP[item_name]["HP"]
         DATA_PLAYER["HP"] += bonus
+
+        # Simpan HP baru ke database
+        conn = sqlite3.connect('game.db')
+        cursor = conn.cursor()
+        cursor.execute("UPDATE memori SET hp_player = ? WHERE id_player = ?", (DATA_PLAYER["HP"], id_player))
+        conn.commit()
+        conn.close()
+
         print(f"HP Max pemain bertambah +{bonus} (sekarang {DATA_PLAYER['HP']})")
         pause(0.2)
 
-def apply_up_mana(item_name):
+def apply_up_mana(id_player, item_name):
     if item_name in UP_MANA:
         bonus = UP_MANA[item_name]["MANA"]
         DATA_PLAYER["MANA"] += bonus
+
+        # Simpan HP baru ke database
+        conn = sqlite3.connect('game.db')
+        cursor = conn.cursor()
+        cursor.execute("UPDATE memori SET mana_player = ? WHERE id_player = ?", (DATA_PLAYER["MANA"], id_player))
+        conn.commit()
+        conn.close()
+
         print(f"Mana Max pemain bertambah +{bonus} (sekarang {DATA_PLAYER['MANA']})")
         pause(0.2)
 
-def gunakan_item_dari_daftar(available_list, inventori, apply_fn):
+def gunakan_item_dari_daftar(id_player, available_list, inventori, apply_fn):
     """
     available_list: list of (name,count)
     apply_fn: function(item_name) -> apply effect
@@ -355,10 +380,20 @@ def gunakan_item_dari_daftar(available_list, inventori, apply_fn):
         idx = ambil_item_index(pilih, len(available_list))
         if idx is not None:
             item_name = available_list[idx][0]
+
             # Terapkan efek
-            apply_fn(item_name)
+            apply_fn(id_player, item_name)
+
             # Hapus satu buah item dari inventori
             inventori.remove(item_name)
+
+            # Hapus dari database
+            conn = sqlite3.connect('game.db')
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM inventori WHERE id_player = ? AND item_name = ? LIMIT 1", (id_player, item_name))
+            conn.commit()
+            conn.close()
+
             print(f"{item_name} telah digunakan dan dihapus dari inventori.")
             return
 
@@ -400,7 +435,7 @@ def logika_serangan(copy_player, copy_musuh, inventori):
         if copy_musuh["HP"] <= 0:
             print("\n", " * " * 10)
             print("Kamu Berhasil Mengalahkan Monster!!")
-            drop_item(inventori)
+            drop_item(id_player, inventori)
             pause(0.5)
             input("\nTekan enter untuk melanjutkan")
             break
@@ -423,7 +458,7 @@ def logika_serangan(copy_player, copy_musuh, inventori):
 
 def main():
     """FUNGSI UTAMA - LOOP"""
-    id_player, user_name = login_atau_daftar()
+    id_player, user_name, inventori = login_atau_daftar()
     print("\n" + "=" * 45)
     print("SELAMAT DATANG DI GAME VERSUS")
     print("=" * 45)
@@ -446,7 +481,7 @@ def main():
             # Proses war dengan salinan stat
             copy_player = copy.deepcopy(DATA_PLAYER)
             copy_musuh = copy.deepcopy(DATA_MUSUH)
-            logika_serangan(copy_player, copy_musuh, inventori)
+            logika_serangan(id_player, copy_player, copy_musuh, inventori)
 
         elif menu == 2:
             while True:
@@ -474,13 +509,13 @@ def main():
                 # Logika up skill
                 if validasi == 1:
                     available = cari_item_tersedia_up_damage(inventori)
-                    gunakan_item_dari_daftar(available, inventori, apply_up_damage)
+                    gunakan_item_dari_daftar(id_player, available, inventori, apply_up_damage)
                 elif validasi == 2:
                     available = cari_item_tersedia_up_hp(inventori)
-                    gunakan_item_dari_daftar(available, inventori, apply_up_hp)
+                    gunakan_item_dari_daftar(id_player, available, inventori, apply_up_hp)
                 elif validasi == 3:
                     available = cari_item_tersedia_up_mana(inventori)
-                    gunakan_item_dari_daftar(available, inventori, apply_up_mana)
+                    gunakan_item_dari_daftar(id_player, available, inventori, apply_up_mana)
                 elif validasi == 4:
                     break
 
