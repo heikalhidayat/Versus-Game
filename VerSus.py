@@ -19,7 +19,6 @@ def init_database():
     conn.close()
 
 init_database()
-
 # =========================================
 # CONSTANTS / GLOBALS
 # =========================================
